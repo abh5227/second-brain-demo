@@ -26,8 +26,8 @@ There is no source code here to build from. One command in the private repositor
 ## What it is not
 
 - Every name, note, record, café, receipt, and lecture in it is made up. The lecturers and slides in Classes are made up too, and the record covers are simple shapes drawn for the demo.
-- Nothing you do leaves your browser. There is no server, no analytics, and no tracking. Edits last until you reload.
-- The demo's day is fixed on the day it was exported, so its dates read as they did then.
+- Nothing you type leaves your browser. The page counts visits and which rooms are opened with GoatCounter, which stores no personal data. There is no server, and edits last until you reload.
+- The demo's dates follow your own day. Every made-up date moves by the days since the export, so Today is always today, and each note keeps its distance from it.
 
 ## How it is made
 

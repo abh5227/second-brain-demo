@@ -382,7 +382,7 @@ a{color:#ECEDEF}
         <a class="skip" href="#results">Skip past the app</a>
         <div class="aw">
           <div class="aw-bar"><span class="aw-chip"><i></i>Second Brain</span><span class="aw-note">The real app, made-up notes</span></div>
-          <div class="aw-fit"><iframe id="app" class="aw-frame" src="app/index.html?v=2026-11-25-1923#/today" title="Second Brain, the real app with made-up notes"></iframe></div>
+          <div class="aw-fit"><iframe id="app" class="aw-frame" src="app/index.html?v=2026-11-25-2232#/today" title="Second Brain, the real app with made-up notes"></iframe></div>
         </div>
       </div>
       <div class="sc" data-show="basement">
@@ -489,13 +489,37 @@ a{color:#ECEDEF}
 
 <script>
 (function () {
+  // Visits and the rooms opened, counted by GoatCounter on the published page only. A visit from this Mac (localhost,
+  // 127.x, a private address or a file) never loads its script, so local checks add nothing to the numbers. A count
+  // names the page or a room and nothing else, and the app, where anything is typed, is in its own frame and never
+  // counted. A ?ref= tag goes as the visit's referrer, so ?ref=linkedin and ?ref=resume show as their own sources.
+  var COUNTED = location.protocol !== 'file:' &&
+    !/(^|\.)localhost$|^127\.|^10\.|^172\.(1[6-9]|2\d|3[01])\.|^192\.168\.|^0\.0\.0\.0$|^\[?::1\]?$/.test(location.hostname);
+  var waitingCounts = [];
+  function tally(vars) {
+    if (!COUNTED) return;
+    var ref = /[?&]ref=([^&#]*)/.exec(location.search);
+    if (ref) vars.referrer = decodeURIComponent(ref[1].replace(/\+/g, ' '));
+    if (window.goatcounter && window.goatcounter.count) window.goatcounter.count(vars);
+    else waitingCounts.push(vars);
+  }
+  if (COUNTED) {
+    var gc = document.createElement('script');
+    gc.async = true;
+    gc.setAttribute('data-goatcounter', 'https://datum-evidence.goatcounter.com/count');
+    gc.setAttribute('data-goatcounter-settings', '{"no_onload": true}');
+    gc.onload = function () { while (waitingCounts.length) window.goatcounter.count(waitingCounts.shift()); };
+    gc.src = 'https://gc.zgo.at/count.js';
+    document.head.appendChild(gc);
+    tally({ path: location.pathname });
+  }
   var APP = ['listen', 'coffee', 'classroom', 'kitchen', 'today', 'hall'];
   // Each room opens the app on its own screen.
   var ROUTE = { today: '#/today', kitchen: '#/kitchen', coffee: '#/kitchen?tab=coffee', hall: '#/events',
     listen: '#/records/Collections/Records/Juniper%20Coast%20-%20Slow%20Weather', classroom: '#/classes/topics/Gradient%20descent' };
   var frame = document.getElementById('app');
   // Each export stamps the app's address (web/scripts/export-demo.mjs), so a browser never mixes in an older build's files.
-  var APP_URL = 'app/index.html?v=2026-11-25-1923';
+  var APP_URL = 'app/index.html?v=2026-11-25-2232';
   var current = null;
   var bar = document.getElementById('bar');
   // A phone, or a touch screen wide enough for the desktop layout, gives the app the height under the header, between
@@ -552,6 +576,8 @@ a{color:#ECEDEF}
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
     if (ROUTE[room]) go(ROUTE[room]);
+    // A room counts when it opens: not the Mudroom a plain visit starts on, and not a room pressed again.
+    if (current && room !== current) tally({ path: 'room/' + SLUG[room], title: NAME[room], event: true });
     current = room;
     steer(room);
     fit();
@@ -731,8 +757,27 @@ a{color:#ECEDEF}
     } else return;
     tree(); log();
   });
+  // The made-up vault's dates follow the visitor's day, as the app's do (the app's src/demo/shift.ts): each moves by the
+  // days from the export day to today, so a file's name matches its note in the app. The page's own dates, the test
+  // runs in Results and the Workshop, are real and never move.
+  var two = function (n) { return (n < 10 ? '0' : '') + n; };
+  var serial = function (y, m, d) { return Date.UTC(+y, +m - 1, +d) / 864e5; };
+  var dayAt = function (n) { var t = new Date(n * 864e5); return t.getUTCFullYear() + '-' + two(t.getUTCMonth() + 1) + '-' + two(t.getUTCDate()); };
+  function moved(text, days) {
+    if (!days) return String(text);
+    return String(text).replace(/(^|[^\w-])(\d{4})-(\d{2})(?:-(\d{2}))?(?![\dA-SU-Za-z_]|-\d)/g, function (all, before, y, m, d) {
+      if (+m < 1 || +m > 12 || (d && (+d < 1 || +d > 31))) return all;
+      var to = dayAt(serial(y, m, d || 15) + days);
+      return before + (d ? to : to.slice(0, 7));
+    });
+  }
+  var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   fetch('vault.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (v) {
-    files = v.files; commits = v.commits; tree(); log();
+    var now = new Date(), was = String(v.today).split('-');
+    var days = serial(now.getFullYear(), now.getMonth() + 1, now.getDate()) - serial(was[0], was[1], was[2]);
+    files = v.files.map(function (f) { return { path: moved(f.path, days) }; });
+    commits = v.commits.map(function (c) { return { hash: c.hash, subject: moved(c.subject, days) }; });
+    tree(); log();
     var d = v.frame;
     var fi = document.querySelectorAll('.fi');
     fi.forEach(function (r, i) { r.setAttribute('fill', i < d.soon.length ? '#E2A653' : '#9ACB79'); });
@@ -744,13 +789,17 @@ a{color:#ECEDEF}
       r.setAttribute('fill', c);
       if (dark(c)) { r.setAttribute('stroke', '#6A6E76'); r.setAttribute('stroke-width', '1'); }
     });
-    document.querySelectorAll('.pass-day').forEach(function (t, i) { if (d.passes[i]) t.textContent = d.passes[i]; });
+    document.querySelectorAll('.pass-day').forEach(function (t, i) {
+      var p = d.passes[i] && moved(d.passes[i], days).split('-');
+      if (p) t.textContent = (+p[2]) + ' ' + MON[+p[1] - 1];
+    });
   });
   // The room the address names, or the one this tab last had, or the Mudroom. A link that names a room, opened fresh,
   // scrolls to its result once the page has loaded. A reload keeps the browser's own scroll.
   var named = BY[location.hash.slice(1)], start = named;
   if (!start) { try { start = sessionStorage.getItem('sb-room'); } catch (e) { /* storage closed */ } }
   show(SLUG[start] ? start : 'today');
+  if (named) tally({ path: 'room/' + SLUG[named], title: NAME[named], event: true }); // a link that names a room opened it
   if (named) addEventListener('load', function () { setTimeout(function () { if (scrollY < 4) arrive(named); }, 0); });
 
   // The pill bar marks the section on screen: the last one whose top has passed under the header, or What I learned
