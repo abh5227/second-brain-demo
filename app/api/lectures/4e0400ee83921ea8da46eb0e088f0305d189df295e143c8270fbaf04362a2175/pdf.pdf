@@ -1,0 +1,130 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R] /Count 8 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Length 188 >>
+stream
+BT /F1 18 Tf 40 365 Td (Notes 4: Optimization for model fitting) Tj ET
+BT /F1 18 Tf 40 341 Td (Lior Tamsin) Tj ET
+BT /F1 18 Tf 40 317 Td (A made-up lecture for the Second Brain demo) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 174 >>
+stream
+0.6 g 40 60 640 285 re f 0 g
+BT /F1 18 Tf 40 365 Td (Made-up slide 2) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (2) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 174 >>
+stream
+0.6 g 40 60 640 285 re f 0 g
+BT /F1 18 Tf 40 365 Td (Made-up slide 3) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (3) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 145 >>
+stream
+BT /F1 18 Tf 40 365 Td (Made-up slide 4) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (4) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 174 >>
+stream
+0.6 g 40 60 640 285 re f 0 g
+BT /F1 18 Tf 40 365 Td (Made-up slide 5) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (5) Tj ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 174 >>
+stream
+0.6 g 40 60 640 285 re f 0 g
+BT /F1 18 Tf 40 365 Td (Made-up slide 6) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (6) Tj ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 145 >>
+stream
+BT /F1 18 Tf 40 365 Td (Made-up slide 7) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (7) Tj ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 174 >>
+stream
+0.6 g 40 60 640 285 re f 0 g
+BT /F1 18 Tf 40 365 Td (Made-up slide 8) Tj ET
+BT /F1 18 Tf 40 341 Td (Step against the slope of the loss) Tj ET
+BT /F1 10 Tf 680 20 Td (8) Tj ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 720 405] /Resources << /Font << /F1 3 0 R >> >> /Contents 18 0 R >>
+endobj
+xref
+0 20
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000162 00000 n 
+0000000259 00000 n 
+0000000498 00000 n 
+0000000624 00000 n 
+0000000849 00000 n 
+0000000975 00000 n 
+0000001200 00000 n 
+0000001326 00000 n 
+0000001523 00000 n 
+0000001651 00000 n 
+0000001877 00000 n 
+0000002005 00000 n 
+0000002231 00000 n 
+0000002359 00000 n 
+0000002556 00000 n 
+0000002684 00000 n 
+0000002910 00000 n 
+trailer
+<< /Size 20 /Root 1 0 R >>
+startxref
+3038
+%%EOF

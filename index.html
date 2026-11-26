@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Second Brain</title>
+<meta name="description" content="A personal notes app by Andy Hannah, drawn as a house. Each room opens the real app, filled with made-up notes.">
+
+<!-- Archivo comes with the app and IBM Plex Mono sits beside the page, so the page asks nothing of another site. -->
+<style>
+@font-face{font-family:"Archivo";src:url("app/fonts/Archivo-Variable.ttf") format("truetype");font-weight:100 900;font-stretch:62% 125%;font-display:swap}
+@font-face{font-family:"IBM Plex Mono";src:url("fonts/IBMPlexMono-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Mono";src:url("fonts/IBMPlexMono-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+.sc[hidden]{display:none}
+
+body{margin:0;background:#0C0E12}
+a{color:#ECEDEF}
+@media (hover:hover){a:hover{color:#E2A653}.room:hover{filter:brightness(1.18)}.bubble:hover{background:rgba(226,166,83,.16);border-color:rgba(226,166,83,.6)}}
+/* Every link takes the amber ring, as the buttons do. */
+.hn a:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+.hn{background:#0C0E12;color:#ECEDEF;font-family:"Archivo",-apple-system,sans-serif;font-size:16px;line-height:1.55}
+.hn *{box-sizing:border-box}
+.hn-top,.hn-hero,.hn-house,.res,.inside,.learned,.hn-foot{max-width:1200px;margin-left:auto;margin-right:auto;padding-left:clamp(16px,3vw,40px);padding-right:clamp(16px,3vw,40px)}
+/* The header: the name, the pill bar of sections and the buttons, stuck to the top, with a line once the page scrolls. */
+.hn-bar{position:sticky;top:0;z-index:20;background:#0C0E12;border-bottom:1px solid transparent;transition:border-color 160ms ease}
+.hn-bar.scrolled{border-bottom-color:#2E3035}
+.hn-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:16px;min-height:76px}
+.me{justify-self:start;font-weight:700;font-size:17px;letter-spacing:-.01em;text-decoration:none;color:#ECEDEF}
+.pill{display:flex;gap:2px;padding:4px;border-radius:999px;background:#17191D;border:1px solid #2E3035}
+.pill a{display:inline-flex;align-items:center;flex:0 0 auto;height:36px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:500;white-space:nowrap;text-decoration:none;color:#ECEDEF}
+.pill a.on{background:#E2A653;color:#1B1C1F;font-weight:600}
+.pill a:focus-visible,.btn-t:focus-visible,.btn-o:focus-visible,.me:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+.acts{display:flex;justify-content:flex-end;gap:10px}
+.btn-o,.btn-t{display:inline-flex;align-items:center;height:38px;padding:0 16px;border-radius:10px;font-size:15px;font-weight:600;text-decoration:none}
+.btn-o{border:1.5px solid #E2A653;color:#E2A653}
+.btn-t{color:#ECEDEF;border:1px solid #3A3D43}
+:root{--head:92px}
+#top,#house,#results,#inside,#learned{scroll-margin-top:var(--head)}
+.hn-hero{padding-top:56px;padding-bottom:12px;text-align:center}
+.chip{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-radius:15px;background:rgba(226,166,83,.1);border:1px solid rgba(226,166,83,.35);font-size:13.5px;font-weight:600;color:#E2A653}
+.chip i{width:7px;height:7px;border-radius:50%;background:#E2A653}
+.hn-hero h1{margin:18px auto 0;max-width:14em;font-size:clamp(36px,5vw,60px);line-height:1.02;font-weight:800;font-stretch:112%;letter-spacing:-.03em;text-wrap:balance}
+.lede{margin:20px auto 0;max-width:40em;font-size:18px;line-height:1.6;color:#C9CCD1;text-wrap:balance}
+.ft-links{display:flex;flex-wrap:wrap;align-items:center;gap:0 10px;margin:0}
+.ft-links>*{display:inline-flex;align-items:center;min-height:32px}
+.ft-links a{color:#C9CCD1}
+.ft-links i{font-style:normal}
+.ft-links .ft-gh,.ft-links .ft-gh-bar{display:none}
+@media (max-width:760px){
+.hn-top{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"me acts" "pill pill";row-gap:10px;padding-top:12px;padding-bottom:12px;min-height:0}
+.me{grid-area:me}.acts{grid-area:acts}
+.pill{grid-area:pill;overflow-x:auto;scrollbar-width:none}
+.pill::-webkit-scrollbar{display:none}
+.pill.fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 32px);mask-image:linear-gradient(90deg,transparent,#000 32px)}
+.pill.fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}
+.pill.fl.fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,transparent,#000 32px,#000 calc(100% - 32px),transparent)}
+.btn-t{display:none}
+.ft-links .ft-gh,.ft-links .ft-gh-bar{display:inline-flex}
+.ft-links>*{min-height:44px}
+.ft-links .ft-lead{display:none}
+.ft-links .ft-who{flex-basis:100%;min-height:0;padding:4px 0}
+:root{--head:124px}
+}
+.hn-house{padding-top:24px;padding-bottom:12px}
+.house{position:relative;width:100%;aspect-ratio:1120/640}
+.shell{position:absolute;inset:0;width:100%;height:100%}
+.room{position:absolute;padding:0;margin:0;border:3px solid #4A4D54;background:#15171B;cursor:pointer;overflow:hidden;color:#ECEDEF;font:inherit;text-align:left;transition:filter 160ms ease,box-shadow 160ms ease}
+.room.on{box-shadow:inset 0 0 0 3px #E2A653,0 0 40px rgba(226,166,83,.25);z-index:2}
+.room:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+.rl{position:absolute;top:6px;left:8px;z-index:1;display:inline-flex;align-items:center;gap:6px;font-size:12px;line-height:1.2;font-weight:600;color:#ECEDEF;text-shadow:0 1px 2px #000}
+.rl i{width:7px;height:7px;border-radius:50%}
+.room{--band:26px}
+.furn{position:absolute;left:0;top:var(--band);width:100%;height:calc(100% - var(--band))}
+.r-attic{background:radial-gradient(60% 90% at 62% 40%,rgba(226,166,83,.28),transparent 70%),#15161A}
+.r-listen{background:radial-gradient(55% 90% at 92% 15%,rgba(226,166,83,.32),transparent 70%),#121614}
+.r-coffee{background:radial-gradient(80% 80% at 50% 10%,rgba(217,179,140,.22),transparent 70%),#1A1714}
+.r-classroom{background:radial-gradient(80% 90% at 40% 20%,rgba(127,196,218,.16),transparent 70%),#14181B}
+.r-kitchen{background:radial-gradient(60% 85% at 24% 58%,rgba(210,232,255,.13),rgba(210,232,255,.05) 55%,transparent 100%),#171A1E}
+.r-today{background:radial-gradient(70% 90% at 50% 20%,rgba(226,166,83,.20),transparent 70%),#1A1816}
+.r-hall{background:radial-gradient(70% 90% at 40% 20%,rgba(179,154,240,.20),transparent 70%),#17151C}
+.r-workshop{background:#141518;border-color:#3A3D43}
+.r-basement{background:radial-gradient(50% 120% at 50% 0%,rgba(226,166,83,.16),transparent 70%),#121110;border-color:#5A4A30}
+.wiring{margin:10px 0 0;text-align:center;font-size:14px;color:#8F939B}
+.inside{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:36px;align-items:start;padding-top:40px;padding-bottom:80px}
+.cap{position:sticky;top:100px}
+.tag{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:600;color:#A3A7AE;text-transform:uppercase;letter-spacing:.08em}
+.tag i{width:9px;height:9px;border-radius:50%}
+.cap h2{margin:10px 0 12px;font-size:28px;line-height:1.15;font-weight:750;font-stretch:108%;letter-spacing:-.02em}
+.cap p{margin:0 0 12px;font-size:16.5px;color:#C9CCD1;text-wrap:pretty}
+.cap .free{font-size:15px;color:#A3A7AE;padding-top:12px;border-top:1px solid #24262A}
+.view{min-width:0}
+.tabs3{display:flex;gap:4px;margin:-6px 0 6px;border-bottom:1px solid #2E3035}
+.tabs3 span{padding:8px 12px;font-size:14px;color:#A3A7AE;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs3 span.on{color:#ECEDEF;border-color:#E2A653;font-weight:600}
+.kr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:baseline;max-width:560px;padding:9px 0;border-top:1px solid #2E3035;font-size:14px}
+.kr b{font-weight:600;font-size:15px}.kr span{color:#A3A7AE;font-size:13px}.kr em{font-style:normal;font-size:13px;color:#A3A7AE}
+.kr.warn em{color:#E2A653;font-weight:600}
+.kr em.liked{color:#9ACB79;font-weight:600}
+.chips2{display:flex;flex-wrap:wrap;gap:6px}.chips2 span{height:28px;line-height:26px;padding:0 11px;border:1px solid #3A3D43;border-radius:14px;font-size:13px;color:#C9CCD1}
+.bag{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:center;max-width:560px;padding:14px;margin-top:12px;border:1px solid #2E3035;border-radius:12px;background:#222327}
+.bag b{display:block;font-size:16px}.bag span{font-size:13px;color:#A3A7AE}.bag svg{width:100%;height:auto}
+.rec{display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px;align-items:end;margin:-28px -44px -32px;padding:36px 44px;min-height:520px;background:radial-gradient(90% 70% at 15% 0%,rgba(95,201,168,.28),transparent 65%),#121614;color:#ECE7DD}
+.rec-art{position:relative;width:200px;aspect-ratio:1}
+.rec-disc{position:absolute;top:4%;left:4%;width:92%;height:92%;transform:translateX(34%)}
+.rec-cover{position:relative;width:100%;height:100%;box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.rec-t{font-size:36px;font-weight:800;font-stretch:112%;letter-spacing:-.02em;line-height:1}
+.rec-m{margin-top:8px;color:#C9C3B8}
+.vin{display:inline-flex;align-items:center;gap:8px;margin-top:12px;height:28px;padding:0 12px 0 8px;border-radius:14px;background:rgba(255,255,255,.07);font-size:13px}.vin i{width:14px;height:14px;border-radius:50%;background:#5FC9A8}
+.trk{margin:16px 0 0;padding-left:20px;color:#C9C3B8;font-size:14px}
+.wal{display:flex;flex-direction:column;max-width:440px;margin-top:4px}
+.ps{border-radius:14px;padding:14px 16px;color:#17181B;margin-top:-16px;box-shadow:0 -6px 16px rgba(0,0,0,.35)}
+.ps:first-child{margin-top:0}.ps.open{padding-bottom:18px;margin-bottom:24px}
+.ps-t{display:flex;justify-content:space-between;align-items:baseline;min-height:44px}
+.ps-t b{font-size:19px;font-weight:800;font-stretch:112%;letter-spacing:-.01em}.ps-t span{font-family:"IBM Plex Mono",monospace;font-size:11.5px}
+.ps-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.ps-g span{display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;opacity:.75}.ps-g b{font-size:14.5px}
+.sect{margin-top:10px;font-size:17px;font-weight:650}
+.fml{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:flex-start;margin:14px 0;padding:14px 18px;border:1px solid #2E3035;border-radius:12px;background:#222327;font-size:24px;max-width:520px}
+.fml span{display:inline-flex;flex-direction:column;align-items:center}.fml i{font-family:"Archivo",Arial,sans-serif}.fml small{font-size:11px;color:#A3A7AE;border-top:1px solid #3A3D43;padding-top:2px}.fml .op{color:#A3A7AE}
+.np{max-width:520px;margin:0;font-size:15px}.ct{display:inline-block;padding:0 6px;border-radius:5px;background:#2A2C31;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#A3A7AE}
+.ain{max-width:520px;margin-top:14px;padding:10px 14px;border:1px solid rgba(226,166,83,.4);border-radius:10px;background:rgba(226,166,83,.06);font-size:14px}
+.bw{border:1px solid #3A3D43;border-radius:14px;background:#121315;padding:20px 24px;min-height:300px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px}
+.bw-h{font-family:"Archivo",sans-serif;font-size:15px;font-weight:600;color:#A3A7AE;margin-bottom:14px}
+.bw-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:24px}
+.tree,.log,.shift{list-style:none;margin:0;padding:0}
+.tree li{padding:4px 0;color:#C9CCD1}.tree .d1{padding-left:18px}.tree .d2{padding-left:36px;color:#A3A7AE}.tree .hi{color:#E2A653}
+.log li{padding:6px 0;border-bottom:1px solid #24262A;color:#C9CCD1}.log b{color:#E2A653;font-weight:500;margin-right:8px}
+.bw-n{margin:16px 0 0;font-family:"Archivo",sans-serif;font-size:14px;color:#8F939B}
+.shift li{display:grid;grid-template-columns:90px minmax(0,1fr);gap:14px;padding:12px 0;border-bottom:1px solid #24262A;font-family:"Archivo",sans-serif;font-size:15px;color:#C9CCD1}
+.shift b{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:500;color:#E2A653;padding-top:2px}
+.learned{padding-top:48px;padding-bottom:56px;border-top:1px solid #24262A}
+.learned h2{margin:0 0 18px;font-size:15px;font-weight:600;color:#A3A7AE}
+.ls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 40px}
+.ls p{margin:0;font-size:16.5px;line-height:1.55;color:#C9CCD1;text-wrap:pretty}.ls b{display:block;margin-bottom:6px;font-size:18px}
+.ls .tag{margin:0 0 8px}.ls b{color:#ECEDEF}
+.hn-foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:24px;padding-bottom:48px;border-top:1px solid #24262A;font-size:14px;color:#A3A7AE}
+@media (max-width:860px){.inside,.ls,.bw-cols{grid-template-columns:minmax(0,1fr)}.cap{position:static}.rl{font-size:10px}.room{--band:22px}.rec{grid-template-columns:minmax(0,1fr);gap:24px}}
+
+.aw{background:#1B1C1F;border:1px solid #3A3D43;border-radius:14px;overflow:hidden;color:#ECEDEF;font-family:"Archivo",-apple-system,sans-serif;font-size:14px;line-height:1.45;box-shadow:0 50px 90px -40px rgba(0,0,0,.7)}
+.aw-bar{display:flex;justify-content:space-between;align-items:center;height:44px;padding:0 14px;background:#161719;border-bottom:1px solid #2E3035}
+.aw-chip{display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border:1px solid #2E3035;border-radius:7px;font-size:12.5px;color:#A3A7AE}
+.aw-chip i{width:7px;height:7px;border-radius:50%;background:#9ACB79}
+.aw-note{font-size:12.5px;color:#8F939B}
+.aw-body{display:flex;min-height:520px}
+.aw-side{flex:0 0 196px;background:#161719;border-right:1px solid #2E3035;padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.aw-brand{display:flex;align-items:center;gap:10px;padding:2px 10px 14px;font-weight:600;font-size:15px}
+.aw-nav{height:32px;line-height:32px;padding:0 10px;border-radius:7px;color:#A3A7AE;font-size:14px}
+.aw-on{background:#2A2C31;color:#ECEDEF}
+.aw-gap{height:10px}
+.aw-main{flex:1 1 auto;padding:28px 44px 32px;min-width:0}
+.aw-date{font-size:13px;color:#A3A7AE}
+.aw-h{font-size:28px;font-weight:650;letter-spacing:-.015em;margin:2px 0 18px}
+.aw-send{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;max-width:620px;padding:16px 10px 10px 18px;border:1px solid #6A6E76;border-radius:12px;background:#222327;font-size:16px}
+.aw-send b{flex:0 0 auto;height:34px;line-height:34px;padding:0 14px;border-radius:8px;background:#E2A653;color:#1B1C1F;font-size:14px}
+.aw-sec{margin:24px 0 6px;font-size:13px;font-weight:600;color:#A3A7AE}
+.aw-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto auto;gap:4px 12px;align-items:center;max-width:620px;padding:10px 0;border-top:1px solid #2E3035}
+.aw-row i,.aw-up i{width:8px;height:8px;border-radius:50%}
+.aw-row b,.aw-up b{display:block;font-weight:600;font-size:15px}
+.aw-row span,.aw-up span{font-size:13px;color:#A3A7AE}
+.aw-row em,.aw-all em{font-style:normal;font-size:13px;color:#A3A7AE;padding:0 8px;height:28px;line-height:28px;border-radius:7px}
+.aw-row em.aw-file,.aw-all em.aw-file{background:#E2A653;color:#1B1C1F;font-weight:600}
+.aw-all{max-width:620px;display:flex;justify-content:flex-end;padding-top:8px}
+.aw-up{display:grid;grid-template-columns:92px 10px auto minmax(0,1fr);gap:12px;align-items:center;max-width:620px;padding:9px 0;border-top:1px solid #2E3035}
+.aw-up b{font-size:14.5px}
+@media (max-width:760px){.aw-side{display:none}.aw-main{padding:22px 16px}.aw-row{grid-template-columns:10px minmax(0,1fr) auto}.aw-row em:not(.aw-file){display:none}}
+
+/* The real app in the window, the samples under Today, and the room chips a phone gets under the house. */
+.aw-fit{height:680px;overflow:hidden}
+.aw-frame{display:block;width:100%;height:680px;border:0;background:#1B1C1F;transform-origin:0 0}
+.cap .try-h{margin:22px 0 10px;font-size:15px;font-weight:600;color:#B4B8BF}
+.bubbles{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin:0;padding:0;list-style:none}
+.bubbles li{max-width:92%}
+.bubble{display:block;min-height:44px;padding:10px 14px;border:1px solid rgba(226,166,83,.35);border-radius:18px 18px 6px 18px;background:rgba(226,166,83,.08);color:#ECEDEF;font:inherit;font-size:15px;line-height:1.4;text-align:left;cursor:pointer}
+.sample:focus-visible,.rc:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+.aw{scroll-margin-top:132px}
+.tree .new{color:#E2A653}
+.cap .samples-n{margin:14px 0 0;font-size:14px;color:#A3A7AE}
+.bw+.bw{margin-top:16px}
+.meas li{grid-template-columns:118px minmax(0,1fr)}
+.meas small{display:block;margin-top:6px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:#8F939B}
+.bw-h:focus{outline:none}
+@media (max-width:600px){.meas li{grid-template-columns:minmax(0,1fr);gap:4px}}
+/* Results. Amber is the finished version and gray what it's compared with, with no other chart color. */
+.res{padding-top:56px;padding-bottom:8px;font-variant-numeric:tabular-nums}
+.res-top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px 28px;margin:10px 0 22px}
+.res-top h2{margin:0;font-size:28px;line-height:1.15;font-weight:750;font-stretch:108%;letter-spacing:-.02em}
+.res-key{display:flex;flex-wrap:wrap;gap:6px 20px;margin:0;padding:0;list-style:none;font-size:14px;color:#C9CCD1}
+.res-key li{display:inline-flex;align-items:center;gap:8px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+.sw-a{background:#E2A653}.sw-g{background:#8F939B}.sw-ag{background:linear-gradient(90deg,#E2A653 50%,#8F939B 50%)}.sw-miss{border:1.5px solid #B4B8BF}
+.res-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+.res-col{display:grid;grid-template-rows:auto auto;gap:20px;align-content:start}
+.rp{border:1px solid #2E3035;border-radius:14px;background:#121315;padding:22px 24px}
+.qa{margin:0 0 22px;padding-left:14px;border-left:3px solid #E2A653}
+.qa .q{margin:0;font-size:15px;font-weight:600;color:#B4B8BF}
+.qa .a{margin:4px 0 0;font-size:20px;line-height:1.3;font-weight:600;color:#ECEDEF}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* A hover never covers anything. A squares row or a memory bar, hovered or focused, brightens with its printed count
+   and the others in its panel dim a little. A date dot says its day in the label row under the line, in place. */
+.sq-row,.mb-row{transition:opacity .15s,filter .15s;border-radius:6px}
+.sq-row:focus-visible,.mb-row:focus-visible{outline:3px solid #E2A653;outline-offset:4px}
+.rp:has(.sq-row:focus-visible) .sq-row:not(:focus-visible),.rp:has(.mb-row:focus-visible) .mb-row:not(:focus-visible){opacity:.65}
+.sq-row:focus-visible,.mb-row:focus-visible{filter:brightness(1.2)}
+.sq-row:focus-visible .sq-n b,.sq-row:focus-visible .sq-n span,.mb-row:focus-visible .mb-h{color:#FFF}
+@media (hover:hover){
+.rp:has(.sq-row:hover) .sq-row:not(:hover),.rp:has(.mb-row:hover) .mb-row:not(:hover){opacity:.65}
+.sq-row:hover,.mb-row:hover{filter:brightness(1.2)}
+.sq-row:hover .sq-n b,.sq-row:hover .sq-n span,.mb-row:hover .mb-h{color:#FFF}
+}
+.sq-row{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l n" "g n";gap:8px 18px;align-items:end;padding:8px 0}
+.sq-l{grid-area:l}.sq-l b{display:block;font-size:15.5px;font-weight:600;color:#ECEDEF}.sq-l span{display:block;font-size:14px;color:#C9CCD1}
+.sq-g{grid-area:g;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px}
+.sq-g i{aspect-ratio:1;border-radius:2px}
+.sq-g .ya{background:#E2A653}.sq-g .na{box-shadow:inset 0 0 0 1.5px #E2A653}
+.sq-g .yg{background:#8F939B}.sq-g .ng{box-shadow:inset 0 0 0 1.5px #8F939B}
+.sq-n{grid-area:n;min-width:76px;text-align:right}.sq-n b{display:block;font-size:15.5px;font-weight:600;color:#ECEDEF}.sq-n span{display:block;font-size:14px;color:#C9CCD1}
+.sq-div{margin:14px 0 4px;padding-top:16px;border-top:1px solid #2E3035;font-size:15.5px;font-weight:600;color:#ECEDEF}
+.sq-key{display:flex;flex-wrap:wrap;gap:8px 20px;margin:18px 0 0;padding:0;list-style:none;font-size:14px;color:#C9CCD1}
+.sq-key li{display:inline-flex;align-items:center;gap:8px}
+.rp-n{margin:16px 0 0;font-size:14px;line-height:1.5;color:#B4B8BF}
+.res-src{margin:16px 0 0;font-size:13.5px;color:#B4B8BF}
+.res-src a{color:#ECEDEF;text-underline-offset:3px}
+.dl{position:relative;height:74px;margin:8px 9px 0}
+.dl-line{position:absolute;left:0;right:0;top:14px;height:2px;background:#3A3D43}
+.dl-dot{position:absolute;top:6px;width:18px;height:18px;margin-left:-9px;padding:0;border:0;border-radius:50%;background:#E2A653;display:grid;place-items:center;cursor:default}
+.dl-dot:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+.dl-dot svg{width:10px;height:10px}
+.dl-t{position:absolute;top:36px;font-size:13.5px;color:#C9CCD1;white-space:nowrap}
+.dl-t.first{transform:translateX(-9px)}.dl-t.last{transform:translateX(calc(-100% + 9px))}
+.dl-say{display:none;color:#ECEDEF;font-weight:600}
+.dl.saying .dl-t:not(.dl-say){visibility:hidden}.dl.saying .dl-say{display:block}
+.mb{margin-top:6px}
+.mb-row{margin:0 0 16px}
+.mb-h{display:flex;justify-content:space-between;gap:12px;font-size:15.5px;color:#ECEDEF;margin-bottom:6px}
+.mb-h b{font-weight:600}
+.mb-bar{position:relative;height:16px;border-radius:0 3px 3px 0;background:repeating-linear-gradient(90deg,#3A3D43 0 1px,transparent 1px 25%),#1B1D21}
+.mb-fill{position:absolute;top:0;bottom:0;left:0;border-radius:0 3px 3px 0}
+.mb-a .mb-solid{background:#E2A653}.mb-a .mb-fade{background:rgba(226,166,83,.4)}
+.mb-g .mb-solid{background:#8F939B}.mb-g .mb-fade{background:rgba(143,147,155,.4)}
+.mb-axis{position:relative;height:20px;margin-top:6px;border-top:1px solid #3A3D43;font-size:13.5px;color:#C9CCD1}
+.mb-axis span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap}
+.mb-axis span:first-child{transform:none}.mb-axis span:last-child{transform:translateX(-100%)}
+@media (max-width:860px){.res-grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:600px){.rp{padding:18px 16px}.sq-g{gap:2px}.sq-row{gap:6px 12px}.sq-n{min-width:64px}}
+@media (pointer:coarse){.pill a{height:44px}.ft-links a{min-height:44px}.res-src a{display:inline-block;padding:12px 0;margin:-12px 0}}
+.app-sc{position:relative}
+.skip{position:absolute;left:-9999px;top:8px;z-index:3;display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:8px;background:#0C0E12;border:1.5px solid #E2A653;color:#E2A653;font-size:14px;font-weight:600;text-decoration:none}
+.skip:focus{left:12px}
+.room-chips{display:none}
+/* The room bar under the house: the room before, this room with its place in the nine, the room after, and a dot per
+   room. It wears the header's pill bar, and on a touch screen every control is 44px tall. */
+.rbar{grid-column:1/-1;width:100%;box-sizing:border-box;display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"prev name next" "dots dots dots";align-items:center;max-width:520px;margin:-16px auto 0;justify-self:center;padding:4px 4px 6px;border-radius:22px;background:#17191D;border:1px solid #2E3035}
+.rb-prev{grid-area:prev}.rb-next{grid-area:next}
+.rb-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:0;border-radius:999px;background:transparent;color:#ECEDEF;cursor:pointer}
+.rb-arrow svg{width:18px;height:18px}
+.rb-name{grid-area:name;display:flex;justify-content:center;align-items:baseline;gap:8px;min-width:0;margin:0;font-size:15px;font-weight:500;color:#ECEDEF;white-space:nowrap}
+.rb-name b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.rb-name span{color:#A3A7AE;font-variant-numeric:tabular-nums}
+.rb-dots{grid-area:dots;display:flex;justify-content:center}
+.rb-dot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer}
+.rb-dot i{width:7px;height:7px;border-radius:50%;background:#4A4D54}
+.rb-dot[aria-pressed="true"] i{background:#E2A653}
+.rb-arrow:focus-visible,.rb-dot:focus-visible{outline:3px solid #E2A653;outline-offset:2px}
+@media (hover:hover){.rb-arrow:hover{background:#24262A}.rb-dot:not([aria-pressed="true"]):hover i{background:#A3A7AE}}
+@media (pointer:coarse){.rb-arrow{width:44px;height:44px}.rb-dot{flex:0 1 44px;width:auto;height:44px}}
+@media (max-width:600px){
+.room-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.rc{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 13px;border:1px solid #3A3D43;border-radius:22px;background:transparent;color:#C9CCD1;font:inherit;font-size:14px;cursor:pointer}
+.rc i{width:8px;height:8px;border-radius:50%}
+.rc[aria-pressed="true"]{border-color:#E2A653;color:#ECEDEF;background:rgba(226,166,83,.10)}
+.aw-fit,.aw-frame{height:680px}
+.rl{display:none}
+.room{--band:0px}
+}
+</style>
+
+</head>
+<body>
+<!-- The public demo page, from the house design approved 17 Nov 2026. web/scripts/export-demo.mjs copies it to the
+     site's index.html, with the app in app/ and the made-up vault in vault.json, which fills the drawing's details. -->
+
+<div class="hn">
+  <div class="hn-bar" id="bar">
+    <header class="hn-top">
+      <a class="me" href="#top">Andy Hannah</a>
+      <nav class="pill" id="pill" aria-label="Sections"><a class="on" href="#house" data-spy="house" aria-current="location">The house</a><a href="#inside" data-spy="inside">Inside</a><a href="#results" data-spy="results">Results</a><a href="#learned" data-spy="learned">What I learned</a></nav>
+      <div class="acts"><a class="btn-t" href="https://github.com/abh5227">GitHub</a></div>
+    </header>
+  </div>
+
+  <section class="hn-hero" id="top">
+    <span class="chip"><i></i>Second Brain. A personal project, 2026</span>
+    <h1>One place for everything I save, kept on my own laptop.</h1>
+    <p class="lede">Second Brain is a personal notebook app I designed and built with Claude&nbsp;Code. I send it a message or a photo, and it works out what is inside, suggests where each piece belongs, and saves it as a plain file I own. Each section is designed around the kind of thing it holds, which is why I have drawn it here as a house. Choose any room to see that part of the&nbsp;app.</p>
+  </section>
+
+  <section class="hn-house" id="house">
+    <div class="house"><svg class="shell" viewBox="0 0 1120 640" preserveAspectRatio="none" aria-hidden="true">
+<path d="M218 172 L640 10 L1062 172" fill="#1B1D22" stroke="#4A4D54" stroke-width="4" stroke-linejoin="round"/>
+<rect x="900" y="40" width="34" height="80" fill="#1B1D22" stroke="#4A4D54" stroke-width="3"/>
+<path d="M66 374 L240 338" stroke="#4A4D54" stroke-width="4"/>
+<rect x="0" y="470" width="1120" height="170" fill="url(#earth)"/>
+<line x1="0" y1="470" x2="1120" y2="470" stroke="#5A5E66" stroke-width="3"/>
+<circle cx="120" cy="70" r="26" fill="#ECEDEF" opacity=".9"/><circle cx="132" cy="62" r="24" fill="#0C0E12"/>
+<defs><pattern id="earth" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#101113"/><line x1="0" y1="0" x2="0" y2="10" stroke="#24262B" stroke-width="2"/></pattern></defs>
+</svg><button type="button" class="room r-attic" data-go="attic" aria-pressed="false" aria-label="Attic, night shift" style="left:48.214%;top:16.250%;width:17.857%;height:10.312%"><span class="rl"><i style="background:#E2A653"></i>Attic</span><svg class="furn" viewBox="0 0 200 66" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="60" y="44" width="80" height="4" fill="#4A4D54"/><rect x="66" y="48" width="3" height="16" fill="#4A4D54"/><rect x="131" y="48" width="3" height="16" fill="#4A4D54"/><path d="M118 20 L128 20 L134 30 L112 30 Z" fill="#E2A653"/><path d="M112 30 L134 30 L150 46 L96 46 Z" fill="#E2A653" opacity=".18"/><line x1="123" y1="30" x2="123" y2="44" stroke="#6A6E76" stroke-width="2"/><rect x="82" y="36" width="20" height="8" fill="#ECEDEF" opacity=".85"/></svg></button><button type="button" class="room r-listen" data-go="listen" aria-pressed="false" aria-label="Listening room, records" style="left:21.429%;top:26.562%;width:33.036%;height:23.438%"><span class="rl"><i style="background:#E2A653"></i>Listening room</span><svg class="furn" viewBox="0 0 370 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="18" y="58" width="150" height="3" fill="#4A3D2E"/><rect x="18" y="118" width="150" height="3" fill="#4A3D2E"/><rect class="spine" x="24" y="66" width="12" height="52" fill="#E9B949"/><rect class="spine" x="39" y="66" width="12" height="52" fill="#5FC9A8"/><rect class="spine" x="54" y="66" width="12" height="52" fill="#E8833A"/><rect class="spine" x="69" y="66" width="12" height="52" fill="#2F4A2F"/><rect class="spine" x="84" y="66" width="12" height="52" fill="#3F6FD8"/><rect class="spine" x="99" y="66" width="12" height="52" fill="#DCE6EA"/><rect class="spine" x="114" y="66" width="12" height="52" fill="#B39AF0"/><rect class="spine" x="129" y="66" width="12" height="52" fill="#E9B949"/><rect class="spine" x="144" y="66" width="12" height="52" fill="#5FC9A8"/><rect x="200" y="108" width="110" height="34" rx="3" fill="#2A2420"/><rect x="206" y="96" width="98" height="12" rx="2" fill="#3A3128"/><ellipse cx="248" cy="96" rx="34" ry="8" fill="#5FC9A8" opacity=".75"/><ellipse cx="248" cy="96" rx="9" ry="2.5" fill="#E8C07D"/><line x1="290" y1="88" x2="268" y2="96" stroke="#A3A7AE" stroke-width="2"/><line x1="344" y1="40" x2="344" y2="142" stroke="#6A6E76" stroke-width="3"/><path d="M330 26 L358 26 L352 42 L336 42 Z" fill="#E2A653"/><rect x="334" y="140" width="20" height="4" fill="#6A6E76"/></svg></button><button type="button" class="room r-coffee" data-go="coffee" aria-pressed="false" aria-label="Coffee bar, coffee" style="left:54.464%;top:26.562%;width:12.500%;height:23.438%"><span class="rl"><i style="background:#D9B38C"></i>Coffee bar</span><svg class="furn" viewBox="0 0 140 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><path d="M64 52 C 76 36, 86 34, 96 37 S 114 46, 124 54" fill="none" stroke="#D9B38C" stroke-width="1.5"/><circle cx="83.9" cy="36.4" r="2.5" fill="#E2A653"/><rect x="10" y="104" width="120" height="40" fill="#3A2F24"/><rect x="6" y="100" width="128" height="6" fill="#5A4A3A"/><path d="M24 64 L52 64 L54 100 L22 100 Z" fill="#C9A27A"/><path d="M24 64 L30 56 L46 56 L52 64" fill="#B08A63"/><rect x="28" y="76" width="20" height="10" fill="#ECEDEF" opacity=".8"/><path d="M80 84 L100 84 L98 100 L82 100 Z" fill="#ECEDEF"/><path d="M100 88 Q108 90 100 96" stroke="#ECEDEF" stroke-width="2" fill="none"/></svg></button><button type="button" class="room r-classroom" data-go="classroom" aria-pressed="false" aria-label="Study, class notes" style="left:66.964%;top:26.562%;width:25.893%;height:23.438%"><span class="rl"><i style="background:#7FC4DA"></i>Study</span><svg class="furn" viewBox="0 0 290 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="24" y="22" width="180" height="80" fill="#6B5A44"/><rect x="28" y="26" width="172" height="72" fill="#1F2A24"/><text x="114" y="62" text-anchor="middle" font-family="Archivo, sans-serif" font-size="20" font-style="italic" fill="#DCE6EA">w − α ∇L(w)</text><line x1="70" y1="72" x2="88" y2="72" stroke="#DCE6EA" stroke-width="1" opacity=".6"/><line x1="96" y1="72" x2="110" y2="72" stroke="#DCE6EA" stroke-width="1" opacity=".6"/><line x1="118" y1="72" x2="162" y2="72" stroke="#DCE6EA" stroke-width="1" opacity=".6"/><text x="79" y="86" text-anchor="middle" font-family="Archivo" font-size="8" fill="#DCE6EA" opacity=".75">weights</text><text x="103" y="86" text-anchor="middle" font-family="Archivo" font-size="8" fill="#DCE6EA" opacity=".75">step</text><text x="140" y="86" text-anchor="middle" font-family="Archivo" font-size="8" fill="#DCE6EA" opacity=".75">slope</text><rect x="214" y="110" width="62" height="5" fill="#6B5A44"/><rect x="218" y="115" width="4" height="30" fill="#6B5A44"/><rect x="268" y="115" width="4" height="30" fill="#6B5A44"/><rect x="228" y="98" width="30" height="5" fill="#7FC4DA"/><rect x="230" y="93" width="26" height="5" fill="#ECEDEF"/></svg></button><button type="button" class="room r-kitchen" data-go="kitchen" aria-pressed="false" aria-label="Kitchen, food" style="left:21.429%;top:50.000%;width:25.000%;height:23.438%"><span class="rl"><i style="background:#9ACB79"></i>Kitchen</span><svg class="furn" viewBox="0 0 280 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="20" y="14" width="96" height="132" rx="8" fill="#2E3237" stroke="#4A4F56" stroke-width="2"/><rect x="26" y="20" width="84" height="80" rx="4" fill="#1E2328"/><rect x="26" y="46" width="84" height="2" fill="#3C4148"/><rect x="26" y="72" width="84" height="2" fill="#3C4148"/><rect class="fi" x="32" y="30" width="22" height="14" rx="2" fill="#E2A653"/><rect class="fi" x="58" y="34" width="18" height="10" rx="2" fill="#E2A653"/><rect class="fi" x="82" y="28" width="20" height="16" rx="2" fill="#9ACB79"/><rect x="32" y="56" width="26" height="14" rx="2" fill="#ECEDEF" opacity=".8"/><rect x="64" y="58" width="16" height="12" rx="2" fill="#9ACB79"/><rect x="34" y="82" width="30" height="14" rx="2" fill="#E9B949" opacity=".7"/><rect x="26" y="106" width="84" height="34" rx="4" fill="#1A1E22"/><rect x="34" y="114" width="22" height="12" rx="2" fill="#93AEE6" opacity=".7"/><path d="M116 16 L150 26 L150 98 L116 100 Z" fill="#383D43" stroke="#4A4F56" stroke-width="2"/><rect x="128" y="40" width="16" height="16" fill="#E9B949"/><rect x="170" y="104" width="100" height="42" fill="#2A2C31"/><rect x="166" y="100" width="108" height="5" fill="#4A4D54"/><rect x="200" y="40" width="40" height="50" fill="#ECEDEF" opacity=".85"/><line x1="206" y1="52" x2="232" y2="52" stroke="#6A6E76"/><line x1="206" y1="60" x2="228" y2="60" stroke="#6A6E76"/><line x1="206" y1="68" x2="230" y2="68" stroke="#6A6E76"/><line x1="206" y1="76" x2="222" y2="76" stroke="#6A6E76"/></svg></button><button type="button" class="room r-today" data-go="today" aria-pressed="false" aria-label="Mudroom, today" style="left:46.429%;top:50.000%;width:24.107%;height:23.438%"><span class="rl"><i style="background:#E2A653"></i>Mudroom</span><svg class="furn" viewBox="0 0 270 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="40" y="96" width="190" height="6" fill="#5A4A3A"/><rect x="50" y="102" width="5" height="44" fill="#5A4A3A"/><rect x="215" y="102" width="5" height="44" fill="#5A4A3A"/><rect x="70" y="80" width="46" height="16" fill="#3A3D43"/><rect x="74" y="72" width="38" height="10" fill="#ECEDEF"/><rect x="78" y="66" width="34" height="8" fill="#ECEDEF" opacity=".7"/><rect x="130" y="34" width="16" height="44" fill="#1B1C1F" stroke="#4A4D54"/><rect x="132" y="58" width="12" height="18" fill="#9ACB79"/><rect x="148" y="34" width="16" height="44" fill="#1B1C1F" stroke="#4A4D54"/><rect x="150" y="58" width="12" height="18" fill="#E2A653"/><rect x="166" y="34" width="16" height="44" fill="#1B1C1F" stroke="#4A4D54"/><rect x="168" y="58" width="12" height="18" fill="#B39AF0"/><rect x="184" y="34" width="16" height="44" fill="#1B1C1F" stroke="#4A4D54"/><rect x="186" y="58" width="12" height="18" fill="#7FC4DA"/><rect x="202" y="34" width="16" height="44" fill="#1B1C1F" stroke="#4A4D54"/><rect x="204" y="58" width="12" height="18" fill="#D9B38C"/></svg></button><button type="button" class="room r-hall" data-go="hall" aria-pressed="false" aria-label="Front door, tickets" style="left:70.536%;top:50.000%;width:22.321%;height:23.438%"><span class="rl"><i style="background:#B39AF0"></i>Front door</span><svg class="furn" viewBox="0 0 250 150" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="20" y="30" width="150" height="4" fill="#6A6E76"/><line x1="40" y1="34" x2="40" y2="46" stroke="#A3A7AE"/><rect x="24" y="46" width="34" height="56" rx="4" fill="#E9B949"/><text x="41" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="#17181B" class="pass-day">21 NOV</text><line x1="86" y1="34" x2="86" y2="46" stroke="#A3A7AE"/><rect x="70" y="46" width="34" height="56" rx="4" fill="#B39AF0"/><text x="87" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="#17181B" class="pass-day">5 DEC</text><line x1="132" y1="34" x2="132" y2="46" stroke="#A3A7AE"/><rect x="116" y="46" width="34" height="56" rx="4" fill="#6CC0AE"/><text x="133" y="62" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="7" fill="#17181B" class="pass-day">12 DEC</text><rect x="200" y="40" width="40" height="108" fill="#2A2C31" stroke="#6A6E76" stroke-width="2"/><circle cx="208" cy="96" r="2.5" fill="#E2A653"/><rect x="214" y="52" width="16" height="22" fill="#E2A653" opacity=".25"/></svg></button><button type="button" class="room r-workshop" data-go="workshop" aria-pressed="false" aria-label="Workshop, sorting" style="left:6.250%;top:58.125%;width:15.179%;height:15.313%"><span class="rl"><i style="background:#A3A7AE"></i>Workshop</span><svg class="furn" viewBox="0 0 170 98" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><rect x="6" y="6" width="158" height="88" fill="none" stroke="#6A6E76" stroke-width="1.5" stroke-dasharray="4 4"/><rect x="20" y="58" width="130" height="5" fill="#5A4A3A"/><rect x="26" y="63" width="4" height="30" fill="#5A4A3A"/><rect x="140" y="63" width="4" height="30" fill="#5A4A3A"/><rect x="40" y="36" width="48" height="22" rx="3" fill="#2A2C31" stroke="#A3A7AE"/><circle cx="50" cy="47" r="3" fill="#9ACB79"/><rect x="58" y="44" width="24" height="3" fill="#6A6E76"/><ellipse cx="116" cy="46" rx="16" ry="9" fill="none" stroke="#A3A7AE" stroke-width="2"/><circle cx="116" cy="46" r="4" fill="#A3A7AE"/></svg></button><button type="button" class="room r-basement" data-go="basement" aria-pressed="false" aria-label="Basement, the vault" style="left:21.429%;top:76.250%;width:71.429%;height:21.250%"><span class="rl"><i style="background:#E2A653"></i>Basement</span><svg class="furn" viewBox="0 0 800 136" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><circle cx="400" cy="14" r="5" fill="#E2A653"/><line x1="400" y1="0" x2="400" y2="9" stroke="#6A6E76"/><ellipse cx="400" cy="70" rx="260" ry="60" fill="#E2A653" opacity=".05"/><rect x="120" y="60" width="150" height="3" fill="#4A3D2E"/><rect x="120" y="100" width="150" height="3" fill="#4A3D2E"/><rect x="290" y="60" width="150" height="3" fill="#4A3D2E"/><rect x="290" y="100" width="150" height="3" fill="#4A3D2E"/><rect x="460" y="60" width="150" height="3" fill="#4A3D2E"/><rect x="460" y="100" width="150" height="3" fill="#4A3D2E"/><rect x="124" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="135" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="146" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="157" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="168" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="179" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="190" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="201" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="212" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="223" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="234" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="245" y="38" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="256" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="124" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="135" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="146" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="157" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="168" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="179" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="190" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="201" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="212" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="223" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="234" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="245" y="78" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="256" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="294" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="305" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="316" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="327" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="338" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="349" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="360" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="371" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="382" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="393" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="404" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="415" y="38" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="426" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="294" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="305" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="316" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="327" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="338" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="349" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="360" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="371" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="382" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="393" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="404" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="415" y="78" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="426" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="464" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="475" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="486" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="497" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="508" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="519" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="530" y="38" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="541" y="38" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="552" y="38" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="563" y="38" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="574" y="38" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="585" y="38" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="596" y="38" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="464" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="475" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="486" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="497" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="508" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="519" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><rect x="530" y="78" width="8" height="22" fill="#9ACB79" opacity=".85"/><rect x="541" y="78" width="8" height="22" fill="#E2A653" opacity=".85"/><rect x="552" y="78" width="8" height="22" fill="#B39AF0" opacity=".85"/><rect x="563" y="78" width="8" height="22" fill="#7FC4DA" opacity=".85"/><rect x="574" y="78" width="8" height="22" fill="#D9B38C" opacity=".85"/><rect x="585" y="78" width="8" height="22" fill="#E59BBF" opacity=".85"/><rect x="596" y="78" width="8" height="22" fill="#ECEDEF" opacity=".85"/><path d="M20 136 L20 60 L70 60" fill="none" stroke="#4A4D54" stroke-width="3"/><rect x="20" y="60" width="10" height="3" fill="#4A4D54"/><rect x="30" y="70" width="10" height="3" fill="#4A4D54"/><rect x="40" y="80" width="10" height="3" fill="#4A4D54"/><rect x="50" y="90" width="10" height="3" fill="#4A4D54"/><rect x="60" y="100" width="10" height="3" fill="#4A4D54"/><rect x="70" y="110" width="10" height="3" fill="#4A4D54"/><rect x="80" y="120" width="10" height="3" fill="#4A4D54"/><rect x="84" y="62" width="26" height="70" fill="#2A2C31" stroke="#6A6E76" stroke-width="2"/><rect x="88" y="90" width="12" height="10" rx="2" fill="#E2A653"/><path d="M90 90 V85 a4 4 0 0 1 8 0 V90" stroke="#E2A653" stroke-width="2" fill="none"/><path d="M716 82 L748 82 L744 132 L720 132 Z" fill="#2A2C31" stroke="#6A6E76" stroke-width="2"/><rect x="712" y="76" width="40" height="6" fill="#6A6E76"/></svg></button></div>
+    <div class="room-chips" role="group" aria-label="Rooms"><button type="button" class="rc" data-go="today" aria-pressed="false"><i style="background:#E2A653"></i>Mudroom</button><button type="button" class="rc" data-go="kitchen" aria-pressed="false"><i style="background:#9ACB79"></i>Kitchen</button><button type="button" class="rc" data-go="coffee" aria-pressed="false"><i style="background:#D9B38C"></i>Coffee bar</button><button type="button" class="rc" data-go="listen" aria-pressed="false"><i style="background:#E2A653"></i>Listening room</button><button type="button" class="rc" data-go="hall" aria-pressed="false"><i style="background:#B39AF0"></i>Front door</button><button type="button" class="rc" data-go="classroom" aria-pressed="false"><i style="background:#7FC4DA"></i>Study</button><button type="button" class="rc" data-go="workshop" aria-pressed="false"><i style="background:#A3A7AE"></i>Workshop</button><button type="button" class="rc" data-go="basement" aria-pressed="false"><i style="background:#E2A653"></i>Basement</button><button type="button" class="rc" data-go="attic" aria-pressed="false"><i style="background:#E2A653"></i>Attic</button></div>
+    <p class="wiring">The front end is React and TypeScript. A Python server keeps a SQLite search index, and every note is a plain Markdown file tracked in git.</p>
+  </section>
+
+  <section class="inside" id="inside">
+    <nav class="rbar" id="rbar" aria-label="Rooms, one at a time"><button type="button" class="rb-arrow rb-prev" id="rb-prev" aria-label="Previous room"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 L7 10 L12.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><p class="rb-name" id="rb-name" aria-live="polite"><b>Mudroom</b><span>1 of 9</span></p><button type="button" class="rb-arrow rb-next" id="rb-next" aria-label="Next room"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5 L13 10 L7.5 15.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="rb-dots" role="group" aria-label="Rooms"><button type="button" class="rb-dot" data-go="today" aria-pressed="false" aria-label="Mudroom"><i></i></button><button type="button" class="rb-dot" data-go="kitchen" aria-pressed="false" aria-label="Kitchen"><i></i></button><button type="button" class="rb-dot" data-go="coffee" aria-pressed="false" aria-label="Coffee bar"><i></i></button><button type="button" class="rb-dot" data-go="listen" aria-pressed="false" aria-label="Listening room"><i></i></button><button type="button" class="rb-dot" data-go="hall" aria-pressed="false" aria-label="Front door"><i></i></button><button type="button" class="rb-dot" data-go="classroom" aria-pressed="false" aria-label="Study"><i></i></button><button type="button" class="rb-dot" data-go="workshop" aria-pressed="false" aria-label="Workshop"><i></i></button><button type="button" class="rb-dot" data-go="basement" aria-pressed="false" aria-label="Basement"><i></i></button><button type="button" class="rb-dot" data-go="attic" aria-pressed="false" aria-label="Attic"><i></i></button></div></nav>
+    <div class="cap">
+      <div class="sc" data-show="today">
+        <p class="tag"><i style="background:#E2A653"></i>Today</p>
+        <h2>Everything starts with a message.</h2>
+        <p>I can send a grocery run, concert tickets, and a to-do in one message. The app splits it into separate items and shows where it would file each one. Nothing is saved until I press File, so I can fix anything it got wrong first.</p>
+        <p class="free">Coming up collects what is due soon from across my notes, so expiring food and this week's show sit in one list.</p>
+        <p class="try-h" id="try-h">Try sending one</p>
+        <ul class="bubbles" aria-labelledby="try-h">
+          <li><button type="button" class="sample bubble" data-sample="Bought oat milk and eggs, and remind me Friday to call Priya about the cabin">Bought oat milk and eggs, and remind me Friday to call Priya about the cabin</button></li>
+          <li><button type="button" class="sample bubble" data-sample="Cortado at Copper Kettle, too bitter, wouldn't get again">Cortado at Copper Kettle, too bitter, wouldn't get again</button></li>
+          <li><button type="button" class="sample bubble" data-sample="Got 2 tickets to Hollow Pines at Larkspur Hall on Dec 12, $38 each">Got 2 tickets to Hollow Pines at Larkspur Hall on Dec 12, $38 each</button></li>
+          <li><button type="button" class="sample bubble" data-sample="A wool scarf for Priya's birthday, about $35">A wool scarf for Priya's birthday, about $35</button></li>
+          <li><button type="button" class="sample bubble" data-sample="Add dish soap and a phone charger to the shopping list">Add dish soap and a phone charger to the shopping list</button></li>
+          <li><button type="button" class="sample bubble" data-sample="Biscuit learned to shake hands today">Biscuit learned to shake hands today</button></li>
+        </ul>
+        <p class="samples-n">In this demo, simple rules in your browser stand in for the model that sorts messages on my laptop. The six samples and anything you type go through the same rules.</p>
+      </div>
+      <div class="sc" data-show="kitchen">
+        <p class="tag"><i style="background:#9ACB79"></i>Kitchen</p>
+        <h2>It keeps track of what is in my fridge and when it goes bad.</h2>
+        <p>I tell it what I bought, and it sets a use-by date and puts it on Today three days before it goes bad. I drew the kitchen as an actual fridge, freezer, and pantry, because knowing where something is helps as much as knowing when it expires.</p>
+        <p class="free">The grocery list learns what I usually buy and suggests it.</p>
+      </div>
+      <div class="sc" data-show="coffee">
+        <p class="tag"><i style="background:#D9B38C"></i>Coffee</p>
+        <h2>A log of every bag of coffee, to learn what I actually like.</h2>
+        <p>The roast, origin, and process come straight off a photo of the bag's label. Each bag gets a freshness curve, so I can see when the beans are at their best.</p>
+        <p class="free">Over time it shows patterns in what I liked, such as light roasts from Ethiopia grown above 2,000 m.</p>
+      </div>
+      <div class="sc" data-show="listen">
+        <p class="tag"><i style="background:#E2A653"></i>Records</p>
+        <h2>Each record gets its own page, in the color of its vinyl.</h2>
+        <p>The page holds the track list, where I bought it, and why I keep it. Colored vinyl tints the whole page, and black records keep the room dark. Each record is recognizable at a glance, the way it is on the shelf.</p>
+        <p class="free">It also remembers the records I have let go and the ones I am still looking for.</p>
+      </div>
+      <div class="sc" data-show="hall">
+        <p class="tag"><i style="background:#B39AF0"></i>Events</p>
+        <h2>Concert tickets live in a wallet, the way they do on a phone.</h2>
+        <p>Each pass keeps the venue, seats, what I paid, and when I bought it. Upcoming shows land on the calendar automatically, and past ones stay, so I can look back at everything I have seen.</p>
+        <p class="free">The price and purchase date stay saved long after the ticket email is gone.</p>
+      </div>
+      <div class="sc" data-show="classroom">
+        <p class="tag"><i style="background:#7FC4DA"></i>Classes</p>
+        <h2>My class notes, organized by topic across every course.</h2>
+        <p>Two courses that teach the same idea get merged into one chapter, with each point linked back to the slide it came from. Anything Claude adds or disagrees with is clearly labeled, so I always know what came from my lecturers.</p>
+        <p class="free">Review questions come back on a schedule, timed for just before I would forget them.</p>
+      </div>
+      <div class="sc" data-show="workshop">
+        <p class="tag"><i style="background:#A3A7AE"></i>How sorting works</p>
+        <h2>Sorting runs entirely on my laptop.</h2>
+        <p>Fixed rules handle what a small AI model tends to get wrong, like dates, names, prices, and ticket counts, so it does not guess them. The model, Qwen3-VL 4B, handles the rest, and Apple's Vision reads the text in screenshots. I had Claude write down how it reads messages. I turned that into rules and a step-by-step prompt, so the model reads messages the same way. All of it runs locally, so my notes never leave the laptop to be sorted.</p>
+        <p class="free">Claude Code worked in a sandbox that let it write only to the project folder, and it asked me before doing anything else.</p>
+      </div>
+      <div class="sc" data-show="basement">
+        <p class="tag"><i style="background:#E2A653"></i>The files</p>
+        <h2>Every note is a plain text file I own.</h2>
+        <p>Each item is saved as its own Markdown file and tracked in git. The app's search, calendar, and map are all built from these files, so if the app ever went away, every note would still open in any text editor.</p>
+        <p class="free">Bulk changes to my real notes need a preview that changes nothing, my approval, and a backup first. The app never deletes a note, and git keeps every version.</p>
+      </div>
+      <div class="sc" data-show="attic">
+        <p class="tag"><i style="background:#E2A653"></i>Overnight</p>
+        <h2>Overnight, Claude Code turns my class notes into study pages.</h2>
+        <p>One agent drafts a topic page from my class notes. A second agent checks every claim against the page it cites and sends back anything that does not hold up. I review the drafts in the morning.</p>
+        <p class="free">A privacy scan runs before anything is published.</p>
+      </div>
+    </div>
+
+    <div class="view">
+      <div class="sc app-sc" data-show="app">
+        <a class="skip" href="#results">Skip past the app</a>
+        <div class="aw">
+          <div class="aw-bar"><span class="aw-chip"><i></i>Second Brain</span><span class="aw-note">The real app, made-up notes</span></div>
+          <div class="aw-fit"><iframe id="app" class="aw-frame" src="app/index.html?v=2026-11-25-1923#/today" title="Second Brain, the real app with made-up notes"></iframe></div>
+        </div>
+      </div>
+      <div class="sc" data-show="basement">
+        <div class="bw">
+          <div class="bw-h">The vault, as files</div>
+          <div class="bw-cols">
+            <ul class="tree" id="tree"></ul>
+            <ul class="log" id="log"></ul>
+          </div>
+          <p class="bw-n">Every change is a git commit, so anything can be undone.</p>
+        </div>
+      </div>
+      <div class="sc" data-show="attic">
+        <div class="bw">
+          <div class="bw-h">Tonight's shift</div>
+          <ol class="shift"><li><b>23:00</b>Starts on mains power, on its own</li><li><b>Writer</b>Drafts a topic page from the class notes, citing each slide</li><li><b>Reviewer</b>Checks every claim against the page it cites, and sends back what does not hold</li><li><b>06:50</b>Stops. Finished drafts wait for me to look</li></ol>
+        </div>
+      </div>
+      <div class="sc" data-show="workshop">
+        <div class="bw">
+          <div class="bw-h">How a message gets sorted</div>
+          <ol class="shift"><li><b>Rules</b>Fixed rules handle what a small model tends to get wrong, like dates, names, prices, and ticket counts</li><li><b>Model</b>Qwen3-VL 4B reads the rest, running through Ollama</li><li><b>Vision</b>Apple's Vision reads text in screenshots</li><li><b>Rows</b>Each piece becomes a row that says where it would go</li></ol>
+        </div>
+        <div class="bw">
+          <div class="bw-h" id="measured" tabindex="-1">How I measured the sorting</div>
+          <ul class="shift meas">
+            <li><b>Answers first</b><span>Each test set has an answer key, written before any run. It says where every piece goes and what each detail inside it should be, like a date or a price. By 7 Nov there were eleven sets, most of them made-up messages and three of my own.</span></li>
+            <li><b>Practice set</b><span>The practice set has 41 made-up messages, written to test patterns. At first, the app sent 29 of their 48 pieces to the right place, and after a day of new rules it sent 46. The details inside those pieces rose from 83 of 152 right to 145. I wrote the rules from these same messages, so this shows them working where they were built.<small>Test report, 28 Oct 2026</small></span></li>
+            <li><b>Unseen test sets</b><span>I held two test sets back before writing any rules from them. The first time the app saw them, it sent 19 of their 23 pieces to the right place. That is 11 of 13 in one set and 8 of 10 in the other. A third, smaller set is left out, because it was part of every run while I wrote the rules.<small>Test report, 28 Oct 2026</small></span></li>
+            <li><b>Wrong notes</b><span>The costliest mistake is filing a note on the wrong person's or thing's page. Early runs made a few, including one on the unseen sets' first runs, and each one became a rule with its own test. No final run since 28 Oct has made one.<small>Test reports, 28 Oct–7 Nov 2026</small></span></li>
+            <li><b>The model</b><span>I tested two small models and chose Qwen3-VL 4B over the heavier Qwen3.5 4B. On 13 test messages, the heavier model sent every piece to the right place in 11, and mine did in 10. But the heavier model used 7.4 to 7.9 GB of memory, while mine used 4.3 to 4.5 GB. On a 16 GB laptop, using about 40% less memory mattered more than one more message right.<small>Test report, 26 Oct 2026</small></span></li>
+            <li><b>All sets</b><span>On 30 Oct, I reran all ten sets after turning their misses into rules. Of 114 pieces, 109 went to the right place (96%), and 419 of 435 details inside them were right. Each message takes about 4.7 seconds once the model is loaded.<small>Test report, 30 Oct 2026</small></span></li>
+            <li><b>Next</b><span>I have now written rules from every unseen set, so a fair next test needs new messages that no rule came from. The sets are also small, so these numbers show direction more than precision.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="res" id="results" aria-labelledby="res-h">
+    <p class="tag"><i style="background:#E2A653"></i>Results</p>
+    <div class="res-top">
+      <h2 id="res-h">How well the sorting works</h2>
+      <ul class="res-key" aria-label="Key"><li><i class="sw sw-a"></i>The finished version</li><li><i class="sw sw-g"></i>For comparison</li></ul>
+    </div>
+    <div class="res-grid">
+      <div class="rp">
+        <div class="qa"><p class="q">How often it sorts correctly</p><p class="a">83% right on unseen test messages</p></div>
+        <p class="sr">On unseen test messages, the app sorted 19 of 23 pieces right, or 83%. On the practice set, it went from 29 of 48 at first to 46 of 48 after a day of new rules.</p>
+        <div>
+          <div class="sq-row" tabindex="0"><div class="sq-l"><b>Unseen test messages</b><span>two sets I set aside</span></div><div class="sq-g" data-right="19" data-of="23" data-tone="a"></div><div class="sq-n"><b>19 of 23</b><span>83%</span></div></div>
+          <div class="sq-div">The practice set I wrote the rules from</div>
+          <div class="sq-row" tabindex="0"><div class="sq-l"><b>Before</b><span>41 made-up messages</span></div><div class="sq-g" data-right="29" data-of="48" data-tone="g"></div><div class="sq-n"><b>29 of 48</b><span>60%</span></div></div>
+          <div class="sq-row" tabindex="0"><div class="sq-l"><b>After</b><span>a day of writing rules</span></div><div class="sq-g" data-right="46" data-of="48" data-tone="a"></div><div class="sq-n"><b>46 of 48</b><span>96%</span></div></div>
+          <ul class="sq-key"><li><i class="sw sw-ag"></i>Sorted right</li><li><i class="sw sw-miss"></i>Missed</li><li>Each square is one piece of a message, and one message can hold several pieces, like a grocery item and a reminder.</li></ul>
+        </div>
+        <p class="rp-n">I scored the two unseen sets the first time the app saw them and wrote rules from them only afterward.</p>
+      </div>
+      <div class="res-col">
+        <div class="rp">
+          <div class="qa"><p class="q">Notes filed on the wrong page</p><p class="a">None in any final test run</p></div>
+          <p class="sr">No final test run filed a note on the wrong page, across runs on 28, 29, and 30 October and 7 November. On their first runs, the two unseen sets filed one.</p>
+          <div class="dl"><span class="dl-line" aria-hidden="true"></span><button type="button" class="dl-dot" style="left:8.33%" data-at="first" aria-label="28 Oct, no note on the wrong page"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 L5 8.6 L9.6 3.6" fill="none" stroke="#1B1C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="dl-dot" style="left:16.67%" data-at="first" aria-label="29 Oct, no note on the wrong page"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 L5 8.6 L9.6 3.6" fill="none" stroke="#1B1C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="dl-dot" style="left:25%" data-at="first" aria-label="30 Oct, no note on the wrong page"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 L5 8.6 L9.6 3.6" fill="none" stroke="#1B1C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button type="button" class="dl-dot" style="left:91.67%" data-at="last" aria-label="7 Nov, no note on the wrong page"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 L5 8.6 L9.6 3.6" fill="none" stroke="#1B1C1F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="dl-t first" style="left:8.33%" aria-hidden="true">28, 29, and 30 Oct</span><span class="dl-t last" style="left:91.67%" aria-hidden="true">7 Nov</span><span class="dl-t dl-say" aria-hidden="true"></span></div>
+          <p class="rp-n">A final run is the last full test of every set at the end of a round of work. On their first runs, the two unseen sets filed one note on the wrong page.</p>
+        </div>
+        <div class="rp">
+          <div class="qa"><p class="q">Memory the model needs</p><p class="a">About 40% less than the heavier option</p></div>
+          <p class="sr">The model I chose, Qwen3-VL 4B, used 4.3 to 4.5 GB of memory, while the heavier Qwen3.5 4B used 7.4 to 7.9 GB.</p>
+          <div class="mb">
+            <div class="mb-row mb-a" tabindex="0"><div class="mb-h"><span>Qwen3-VL 4B, the one I chose</span><b>4.3 to 4.5 GB</b></div><div class="mb-bar"><span class="mb-fill mb-fade" style="width:56.25%"></span><span class="mb-fill mb-solid" style="width:53.75%"></span></div></div>
+            <div class="mb-row mb-g" tabindex="0"><div class="mb-h"><span>Qwen3.5 4B</span><b>7.4 to 7.9 GB</b></div><div class="mb-bar"><span class="mb-fill mb-fade" style="width:98.75%"></span><span class="mb-fill mb-solid" style="width:92.5%"></span></div></div>
+            <div class="mb-axis" aria-hidden="true"><span style="left:0">0</span><span style="left:25%">2</span><span style="left:50%">4</span><span style="left:75%">6</span><span style="left:100%">8 GB</span></div>
+          </div>
+          <p class="rp-n">On 13 test messages, the heavier model sent every piece to the right place in 11, and the one I chose did in 10.</p>
+        </div>
+      </div>
+    </div>
+    <p class="res-src">Sources: my test reports, 26 Oct–7 Nov 2026. The Workshop explains <a href="#workshop" data-go="workshop" data-to="measured">how I measured it</a>.</p>
+  </section>
+
+  <section class="learned" id="learned">
+    <h2>What I learned</h2>
+    <div class="ls">
+      <p><b>Make adding things effortless.</b> Sending a quick message was already a habit, so it became the main way in. Every note still has a page to edit, but editing comes second.</p>
+      <p><b>Design each section around what it holds.</b> Generic forms kept feeling like work. A fridge, a wallet, and a record sleeve make each section obvious at a glance.</p>
+      <p><b>Keep the data in a format that outlives the app.</b> Plain Markdown files in git open in any text editor. The database is only an index, and it can be rebuilt from the files at any time.</p>
+      <p><b>Make Claude's work easy to check.</b> Every point on a class page links to its slide, anything Claude added is labeled, and a second agent reviews each draft. Nothing the app sorts is saved until I approve it.</p>
+      <p><b>Give AI a plan, checkpoints, and guardrails.</b> I plan in one chat and build in another. Claude Code works from written plans, stops at checkpoints with clear options for me to pick from, and works in a sandbox that writes only to the project folder and asks me before anything else. A guard blocks every delete command, and anything Claude Code removes waits in a trash folder for 7 days, so it can work safely next to my real notes.</p>
+      <p><b>Treat AI usage as a budget.</b> I log what each task costs, run a small test before any large job, and schedule the heaviest work overnight. Drafting a class page now has a known cost, so a big job starts with an estimate.</p>
+    </div>
+  </section>
+
+  <section class="learned" id="next" aria-labelledby="next-h">
+    <h2 id="next-h">What's next</h2>
+    <div class="ls">
+      <p><b>A fresh set of unseen test messages.</b><span class="tag"><i style="background:#A3A7AE"></i>Planned</span>I have now written rules from every unseen set. The next accuracy number needs new messages that no rule came from, scored the first time the app sees them.</p>
+      <p><b>Every course topic in the Study.</b><span class="tag"><i style="background:#E2A653"></i>In development</span>Claude has drafted most of the topic pages from my lecture slides, and a second agent checks every point against the slide it cites. Once all of them are in, each course will have one page per idea, with review questions already on a schedule.</p>
+      <p><b>Second Brain on my phone.</b><span class="tag"><i style="background:#A3A7AE"></i>Planned</span>The phone will reach the laptop through a private network that only my own devices can join. It will also keep a copy of the grocery list that works without a connection. My notes stay on the laptop, and the list is ready in the store, where I need it most.</p>
+    </div>
+  </section>
+
+  <footer class="hn-foot"><p class="ft-links"><span class="ft-who">Andy Hannah</span><i class="ft-lead" aria-hidden="true">|</i><span class="ft-who">MS in Data Science, Northeastern University, December 2026</span><i class="ft-lead" aria-hidden="true">|</i><a href="https://www.linkedin.com/in/andy-hannah/">LinkedIn</a><i aria-hidden="true">|</i><a href="mailto:andyhannah2014@gmail.com">andyhannah2014@gmail.com</a><i class="ft-gh-bar" aria-hidden="true">|</i><a class="ft-gh" href="https://github.com/abh5227">GitHub</a></p><span>All names and notes in this demo are made up. My real notes stay on my laptop.</span></footer>
+</div>
+
+<script>
+(function () {
+  var APP = ['listen', 'coffee', 'classroom', 'kitchen', 'today', 'hall'];
+  // Each room opens the app on its own screen.
+  var ROUTE = { today: '#/today', kitchen: '#/kitchen', coffee: '#/kitchen?tab=coffee', hall: '#/events',
+    listen: '#/records/Collections/Records/Juniper%20Coast%20-%20Slow%20Weather', classroom: '#/classes/topics/Gradient%20descent' };
+  var frame = document.getElementById('app');
+  // Each export stamps the app's address (web/scripts/export-demo.mjs), so a browser never mixes in an older build's files.
+  var APP_URL = 'app/index.html?v=2026-11-25-1923';
+  var current = null;
+  var bar = document.getElementById('bar');
+  // A phone, or a touch screen wide enough for the desktop layout, gives the app the height under the header, between
+  // 420px and 680px, so its bottom bar and its search stay on screen. It's worked out again only when the width
+  // changes, since a phone's toolbar changes the height as the page scrolls.
+  var touch = matchMedia('(pointer:coarse)');
+  var WIDE = 800, TALL = 680, high = TALL, sized = 0;
+  function fit() {
+    if (innerWidth !== sized) {
+      sized = innerWidth;
+      high = innerWidth <= 600 || touch.matches ? Math.max(420, Math.min(TALL, innerHeight - bar.offsetHeight - 44 - 16)) : TALL;
+    }
+    var box = frame.parentElement, w = box.clientWidth;
+    box.style.height = high + 'px';
+    // The app switches to its phone layout under 768px. Beside the caption its column is narrower than that, so the
+    // app is drawn 800px wide and scaled to fit, as the desktop app. On a phone it stays the phone app, at its own size.
+    if (innerWidth > 600 && w > 0 && w < WIDE) {
+      var k = w / WIDE;
+      frame.style.width = WIDE + 'px'; frame.style.height = (high / k) + 'px'; frame.style.transform = 'scale(' + k + ')';
+    } else { frame.style.width = ''; frame.style.height = high + 'px'; frame.style.transform = ''; }
+  }
+  addEventListener('resize', fit);
+  // Safari reads a hash set on the frame before the app has loaded as a move of the blank page, and drops the load.
+  // So the hash is set only once the app is there, and the frame's address otherwise.
+  function go(route) {
+    var here = '';
+    try { here = frame.contentWindow.location.pathname; } catch (e) { /* not readable yet */ }
+    // replace, so a room's move adds no entry to the browser's history, and Back leaves the page's own entries alone.
+    var at = frame.contentWindow.location;
+    if (/\/app\/index\.html$/.test(here)) { if (at.hash !== route) at.replace(at.pathname + at.search + route); }
+    else if (frame.getAttribute('src') !== APP_URL + route) frame.src = APP_URL + route;
+  }
+  // A room's result sits under the house: the app's window, or the room's text for the three without the app. It
+  // counts as in view when its top is under the header and in the upper 40% of the screen. Otherwise, or always when
+  // forced, it scrolls to just under the header, at once for anyone who asks for reduced motion.
+  var calm = matchMedia('(prefers-reduced-motion: reduce)');
+  function reveal(el, force) {
+    var top = el.getBoundingClientRect().top, head = bar.offsetHeight;
+    if (force ? top >= head && top <= head + 48 : top >= head && top <= innerHeight * 0.4) return;
+    scrollTo({ top: scrollY + top - head - 12, behavior: calm.matches ? 'auto' : 'smooth' });
+  }
+  function result(room) {
+    return APP.indexOf(room) !== -1 ? frame.closest('.aw') : document.querySelector('.cap .sc[data-show="' + room + '"]');
+  }
+  // Every press routes the app, so a room pressed again brings the app back to that room's screen.
+  function show(room, look) {
+    document.querySelectorAll('.sc').forEach(function (el) {
+      var k = el.getAttribute('data-show');
+      el.hidden = !(k === room || (k === 'app' && APP.indexOf(room) !== -1));
+    });
+    document.querySelectorAll('button[data-go]:not(.rb-arrow)').forEach(function (b) {
+      var on = b.getAttribute('data-go') === room;
+      b.classList.toggle('on', on && b.classList.contains('room'));
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    if (ROUTE[room]) go(ROUTE[room]);
+    current = room;
+    steer(room);
+    fit();
+    if (look) arrive(room);
+  }
+  // The room bar goes through the rooms in the phone chips' order, from the Mudroom, and wraps at either end. Each
+  // arrow carries the room it opens, so a press goes through the same click as that room's.
+  var rbar = document.getElementById('rbar'), rbName = document.getElementById('rb-name');
+  var rbPrev = document.getElementById('rb-prev'), rbNext = document.getElementById('rb-next');
+  var ORDER = [], NAME = {};
+  document.querySelectorAll('.room-chips .rc').forEach(function (c) { var g = c.getAttribute('data-go'); ORDER.push(g); NAME[g] = c.textContent.trim(); });
+  function steer(room) {
+    var i = ORDER.indexOf(room), n = ORDER.length, prev = ORDER[(i + n - 1) % n], next = ORDER[(i + 1) % n];
+    rbName.firstChild.textContent = NAME[room];
+    rbName.lastChild.textContent = (i + 1) + ' of ' + n;
+    rbPrev.setAttribute('data-go', prev); rbPrev.setAttribute('aria-label', 'Previous room: ' + NAME[prev]);
+    rbNext.setAttribute('data-go', next); rbNext.setAttribute('aria-label', 'Next room: ' + NAME[next]);
+  }
+  // An opened room brings the room bar just under the header, with the room's result below it. With the bar on screen
+  // under the header and the result in the upper 40% of the screen already, nothing moves.
+  function arrive(room) {
+    var head = bar.offsetHeight, b = rbar.getBoundingClientRect(), r = result(room).getBoundingClientRect();
+    if (b.top >= head && b.bottom <= innerHeight && r.top >= b.bottom && r.top <= innerHeight * 0.4) return;
+    scrollTo({ top: scrollY + b.top - head - 8, behavior: calm.matches ? 'auto' : 'smooth' });
+  }
+  // The room is in the address (#kitchen), so a reload or a shared link opens it, and this tab remembers it when a
+  // section's link takes the address. A room press replaces the address, so Back never steps through rooms. The
+  // method link adds one, so Back returns to the results.
+  var SLUG = { today: 'mudroom', kitchen: 'kitchen', coffee: 'coffee-bar', listen: 'listening-room', hall: 'front-door',
+    classroom: 'study', workshop: 'workshop', basement: 'basement', attic: 'attic' };
+  var BY = {};
+  Object.keys(SLUG).forEach(function (r) { BY[SLUG[r]] = r; });
+  // back is where the page was before the method link: its scroll and its room. The entry Back returns to keeps it, and
+  // so does this tab, since Safari can land Back on an older entry once the app inside has moved, and scroll to its top.
+  function remember(room, back) {
+    try {
+      sessionStorage.setItem('sb-room', room);
+      if (back) sessionStorage.setItem('sb-back', JSON.stringify(back));
+    } catch (e) { /* storage closed: the address still has the room */ }
+    // The method link always adds an entry, even when the Workshop is already in the address, so Back has one to leave.
+    if (back) {
+      history.replaceState({ y: back.y }, '', location.href);
+      history.pushState(null, '', '#' + SLUG[room]);
+    } else if (location.hash !== '#' + SLUG[room]) history.replaceState(null, '', '#' + SLUG[room]);
+  }
+  addEventListener('popstate', function (e) {
+    var r = BY[location.hash.slice(1)], back = null, y = e.state && e.state.y;
+    if (r !== 'workshop') {
+      try { back = JSON.parse(sessionStorage.getItem('sb-back') || 'null'); sessionStorage.removeItem('sb-back'); } catch (x) { /* storage closed */ }
+    }
+    if (!r && back) r = back.room;
+    if (r && r !== current) {
+      show(r, false);
+      try { sessionStorage.setItem('sb-room', r); } catch (x) { /* storage closed */ }
+    }
+    if (typeof y !== 'number' && back) y = back.y;
+    // Twice, since Safari puts its own scroll back a moment after this event.
+    if (typeof y === 'number') [0, 150].forEach(function (t) { setTimeout(function () { scrollTo({ top: y, behavior: 'auto' }); }, t); });
+  });
+  document.addEventListener('click', function (e) {
+    // A link to a section fires popstate too, so any later press on the page drops the method link's way back, and
+    // only Back uses it.
+    if (e.target.closest('a[href^="#"], [data-go]')) { try { sessionStorage.removeItem('sb-back'); } catch (x) { /* storage closed */ } }
+    var b = e.target.closest('[data-go]');
+    if (!b) return;
+    var room = b.getAttribute('data-go'), to = b.getAttribute('data-to');
+    if (b.tagName === 'A') e.preventDefault();
+    if (to) {
+      // "How I measured it" opens the Workshop at its measurement panel, and moves focus there for a keyboard.
+      var back = { y: scrollY, room: current };
+      show(room, false);
+      remember(room, back);
+      var el = document.getElementById(to);
+      reveal(el, true);
+      el.focus({ preventScroll: true });
+      return;
+    }
+    show(room, true);
+    remember(room, false);
+  });
+
+  // A sample goes to the app's send box on Today, and sends. The app's window comes up under the header, since the
+  // rows appear inside it. A second press while one is sending does nothing, so a double tap sends once.
+  var sending = 0;
+  document.querySelectorAll('.sample').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (Date.now() - sending < 4000) return;
+      sending = Date.now();
+      var win = frame.contentWindow, tries = 0;
+      reveal(frame.closest('.aw'), true);
+      if (!/^#\/today/.test(win.location.hash)) go('#/today');
+      (function wait() {
+        if (win.document.querySelector('#td-words') || tries++ > 40) win.postMessage({ sbSample: b.getAttribute('data-sample') }, location.origin);
+        else setTimeout(wait, 100);
+      })();
+    });
+  });
+
+  // A date dot, hovered or focused, says its day in the label row under the line, in place of the row's own labels, at
+  // the first label's place for the October dots and the last's for November's.
+  var dl = document.querySelector('.dl'), say = dl.querySelector('.dl-say');
+  dl.querySelectorAll('.dl-dot').forEach(function (d) {
+    function on() {
+      var at = d.getAttribute('data-at');
+      say.textContent = d.getAttribute('aria-label');
+      say.className = 'dl-t dl-say ' + at;
+      say.style.left = at === 'first' ? '8.33%' : '91.67%';
+      dl.classList.add('saying');
+    }
+    function off() { if (document.activeElement !== d && !d.matches(':hover')) dl.classList.remove('saying'); }
+    d.addEventListener('mouseenter', on); d.addEventListener('focus', on);
+    d.addEventListener('mouseleave', off); d.addEventListener('blur', off);
+  });
+
+  // On a phone the chips under the house name every room, so the drawing's rooms leave the Tab order and the screen
+  // reader's list, and each room is reached once.
+  var narrow = matchMedia('(max-width:600px)'), house = document.querySelector('.house');
+  function once() {
+    house.setAttribute('aria-hidden', narrow.matches ? 'true' : 'false');
+    house.querySelectorAll('.room').forEach(function (r) { if (narrow.matches) r.setAttribute('tabindex', '-1'); else r.removeAttribute('tabindex'); });
+  }
+  if (narrow.addEventListener) narrow.addEventListener('change', once);
+  once();
+
+  // The results' squares: one per piece of a message, filled when it was sorted right, outlined when it was missed.
+  document.querySelectorAll('.sq-g').forEach(function (g) {
+    var right = +g.getAttribute('data-right'), of = +g.getAttribute('data-of'), t = g.getAttribute('data-tone'), out = '';
+    for (var i = 0; i < of; i++) out += '<i class="' + (i < right ? 'y' : 'n') + t + '"></i>';
+    g.innerHTML = out;
+  });
+
+  // The drawing's details and the Basement, from the made-up vault (vault.json, written by the export).
+  var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var files = [], commits = [], made = [];
+  function tree() {
+    var newest = made.length ? made[0] : (files[0] && files[0].path);
+    var folder = function (p) { return p.slice(0, p.lastIndexOf('/') + 1); };
+    var home = newest ? folder(newest) : '';
+    var near = files.map(function (f) { return f.path; }).filter(function (p) { return folder(p) === home && p !== newest; }).slice(0, 1);
+    var tops = {}, life = {};
+    files.forEach(function (f) {
+      var parts = f.path.split('/');
+      if (parts.length < 2) return;
+      if (parts[0] === 'Life') life[parts[1] === 'Home' ? 'Home/Kitchen/' : parts[1] + '/'] = true;
+      else tops[parts.length > 2 ? parts[0] + '/' + parts[1] + '/' : parts[0] + '/'] = true;
+    });
+    var out = [], within = home.indexOf('Life/') === 0 ? home.slice(5) : null;
+    out.push('<li>Life/</li>');
+    if (within) {
+      out.push('<li class="d1">' + esc(within) + '</li>');
+      out.push('<li class="d2 hi' + (made.length ? ' new' : '') + '">' + esc(newest.slice(home.length)) + '</li>');
+      near.forEach(function (p) { out.push('<li class="d2">' + esc(p.slice(home.length)) + '</li>'); });
+    }
+    ['Coffee/', 'Events/', 'Home/Kitchen/'].filter(function (k) { return life[k] && k !== within; }).slice(0, 2)
+      .forEach(function (k) { out.push('<li class="d1">' + esc(k) + '</li>'); });
+    ['Collections/Records/', 'Classes/Topics/', 'Inbox/', 'Library/Links/'].filter(function (k) { return tops[k]; })
+      .forEach(function (k) { out.push('<li' + (home === k ? ' class="hi"' : '') + '>' + esc(k) + '</li>'); });
+    document.getElementById('tree').innerHTML = out.join('');
+  }
+  function log() {
+    document.getElementById('log').innerHTML = commits.slice(0, 5).map(function (c) {
+      return '<li><b>' + esc(c.hash) + '</b>' + esc(c.subject) + '</li>';
+    }).join('');
+  }
+  window.addEventListener('message', function (e) {
+    var m = e.data;
+    if (e.origin !== location.origin || !m || !m.sb) return;
+    if (m.kind === 'made' && /^Inbox\//.test(m.path)) sending = 0;
+    if (m.kind === 'made' && !/^Inbox\//.test(m.path)) {
+      made.unshift(m.path);
+      commits.unshift({ hash: 'new', subject: 'Add note: ' + m.path.split('/').pop().replace(/\.md$/, ''), fresh: true });
+    } else if (m.kind === 'gone') {
+      made = made.filter(function (p) { return p !== m.path; });
+      commits = commits.filter(function (c) { return !(c.fresh && 'Add note: ' + m.path.split('/').pop().replace(/\.md$/, '') === c.subject); });
+    } else if (m.kind === 'logged') {
+      commits.unshift({ hash: 'new', subject: 'Log to ' + m.path.split('/').pop().replace(/\.md$/, ''), fresh: true });
+    } else return;
+    tree(); log();
+  });
+  fetch('vault.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (v) {
+    files = v.files; commits = v.commits; tree(); log();
+    var d = v.frame;
+    var fi = document.querySelectorAll('.fi');
+    fi.forEach(function (r, i) { r.setAttribute('fill', i < d.soon.length ? '#E2A653' : '#9ACB79'); });
+    // A black record would read as a gap on the dark shelf, so a dark spine gets a thin lighter edge.
+    var dark = function (hex) { var n = parseInt(hex.slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 < 40; };
+    document.querySelectorAll('.spine').forEach(function (r, i) {
+      if (!d.spines.length) return;
+      var c = d.spines[i % d.spines.length];
+      r.setAttribute('fill', c);
+      if (dark(c)) { r.setAttribute('stroke', '#6A6E76'); r.setAttribute('stroke-width', '1'); }
+    });
+    document.querySelectorAll('.pass-day').forEach(function (t, i) { if (d.passes[i]) t.textContent = d.passes[i]; });
+  });
+  // The room the address names, or the one this tab last had, or the Mudroom. A link that names a room, opened fresh,
+  // scrolls to its result once the page has loaded. A reload keeps the browser's own scroll.
+  var named = BY[location.hash.slice(1)], start = named;
+  if (!start) { try { start = sessionStorage.getItem('sb-room'); } catch (e) { /* storage closed */ } }
+  show(SLUG[start] ? start : 'today');
+  if (named) addEventListener('load', function () { setTimeout(function () { if (scrollY < 4) arrive(named); }, 0); });
+
+  // The pill bar marks the section on screen: the last one whose top has passed under the header, or What I learned
+  // once the page can't scroll further. A click marks its section at once.
+  var pill = document.getElementById('pill');
+  var spies = [].slice.call(pill.querySelectorAll('[data-spy]'));
+  function mark(id) {
+    spies.forEach(function (a) {
+      var on = a.getAttribute('data-spy') === id;
+      a.classList.toggle('on', on);
+      if (on) {
+        a.setAttribute('aria-current', 'location');
+        if (pill.scrollWidth > pill.clientWidth) pill.scrollLeft = a.offsetLeft - (pill.clientWidth - a.offsetWidth) / 2;
+      } else a.removeAttribute('aria-current');
+    });
+  }
+  // The bar fades at an edge with more pills past it. --head is the header's height, which every anchor lands under.
+  function edges() {
+    var over = pill.scrollWidth > pill.clientWidth + 1;
+    pill.classList.toggle('fl', over && pill.scrollLeft > 2);
+    pill.classList.toggle('fr', over && pill.scrollLeft < pill.scrollWidth - pill.clientWidth - 2);
+    document.documentElement.style.setProperty('--head', (bar.offsetHeight + 16) + 'px');
+  }
+  pill.addEventListener('scroll', edges, { passive: true });
+  function spy() {
+    var line = bar.offsetHeight + 24, on = 'house';
+    ['house', 'inside', 'results', 'learned'].forEach(function (id) {
+      if (document.getElementById(id).getBoundingClientRect().top <= line) on = id;
+    });
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) on = 'learned';
+    mark(on);
+    edges();
+    bar.classList.toggle('scrolled', scrollY > 0);
+  }
+  spies.forEach(function (a) { a.addEventListener('click', function () { mark(a.getAttribute('data-spy')); }); });
+  addEventListener('scroll', spy, { passive: true });
+  addEventListener('resize', spy);
+  spy();
+})();
+</script>
+</body>
+</html>
