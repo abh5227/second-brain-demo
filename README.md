@@ -13,6 +13,7 @@ This repository holds only the built demo. The app's own code is in a private re
 - `vault.json`, the made-up vault's files and latest commits, which fill the drawing and the Basement.
 - `fonts/`, IBM Plex Mono for the page's small labels. The app's own font, Archivo, is in `app/fonts/`.
 - `THIRD-PARTY-NOTICES.md`, the libraries and fonts in the build, with their licenses.
+- `preview.png`, the picture a shared link shows: the house at night.
 
 There is no source code here to build from. One command in the private repository makes the demo, as described below.
 

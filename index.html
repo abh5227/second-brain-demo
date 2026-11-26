@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Second Brain</title>
 <meta name="description" content="A personal notes app by Andy Hannah, drawn as a house. Each room opens the real app, filled with made-up notes.">
+<!-- What a shared link shows. The picture is made by each export (web/scripts/export-demo.mjs) and served beside the page. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Second Brain | Live demo">
+<meta property="og:description" content="A notes app that sorts messages and screenshots with a small AI model running on my laptop. 83% right on unseen test messages.">
+<meta property="og:url" content="https://abh5227.github.io/second-brain-demo/">
+<meta property="og:image" content="https://abh5227.github.io/second-brain-demo/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="The Second Brain demo, drawn as a house at night, with a lit room for each part of the app.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Second Brain | Live demo">
+<meta name="twitter:description" content="A notes app that sorts messages and screenshots with a small AI model running on my laptop. 83% right on unseen test messages.">
+<meta name="twitter:image" content="https://abh5227.github.io/second-brain-demo/preview.png">
+<meta name="twitter:image:alt" content="The Second Brain demo, drawn as a house at night, with a lit room for each part of the app.">
 
 <!-- Archivo comes with the app and IBM Plex Mono sits beside the page, so the page asks nothing of another site. -->
 <style>
@@ -382,7 +396,7 @@ a{color:#ECEDEF}
         <a class="skip" href="#results">Skip past the app</a>
         <div class="aw">
           <div class="aw-bar"><span class="aw-chip"><i></i>Second Brain</span><span class="aw-note">The real app, made-up notes</span></div>
-          <div class="aw-fit"><iframe id="app" class="aw-frame" src="app/index.html?v=2026-11-25-2232#/today" title="Second Brain, the real app with made-up notes"></iframe></div>
+          <div class="aw-fit"><iframe id="app" class="aw-frame" src="app/index.html?v=2026-11-25-2300#/today" title="Second Brain, the real app with made-up notes"></iframe></div>
         </div>
       </div>
       <div class="sc" data-show="basement">
@@ -519,7 +533,7 @@ a{color:#ECEDEF}
     listen: '#/records/Collections/Records/Juniper%20Coast%20-%20Slow%20Weather', classroom: '#/classes/topics/Gradient%20descent' };
   var frame = document.getElementById('app');
   // Each export stamps the app's address (web/scripts/export-demo.mjs), so a browser never mixes in an older build's files.
-  var APP_URL = 'app/index.html?v=2026-11-25-2232';
+  var APP_URL = 'app/index.html?v=2026-11-25-2300';
   var current = null;
   var bar = document.getElementById('bar');
   // A phone, or a touch screen wide enough for the desktop layout, gives the app the height under the header, between
